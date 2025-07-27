@@ -1,10 +1,7 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-//const Reading = require('./models/reading');
 
 const app = express();
-
 app.use(express.json());
 
 app.use(cors({
@@ -13,16 +10,34 @@ app.use(cors({
   allowedHeaders: ['Content-Type']
 }));
 
+// In-memory storage
+let latestData = [];
+
+// POST route to receive data
 app.post('/api/data', (req, res) => {
-  console.log(req.body);
-  res.status(200).json({ message: 'Data received successfully' });
+  const { temperature, humidity } = req.body;
+
+  if (temperature && humidity) {
+    const timestamp = new Date();
+    latestData.unshift({ temperature, humidity, timestamp });
+
+    // Keep only latest 10 readings
+    if (latestData.length > 10) {
+      latestData.pop();
+    }
+
+    console.log(`[📥 RECEIVED] Temp: ${temperature}, Humidity: ${humidity}`);
+    res.status(200).json({ message: 'Data received successfully' });
+  } else {
+    res.status(400).json({ error: 'Invalid data' });
+  }
 });
 
-
-app.get('/api/data', async (req, res) => {
-    const data = await Reading.find().sort({ createdAt: -1 }).limit(10);
-    res.json(data);
+// GET route to return data
+app.get('/api/data', (req, res) => {
+  res.json(latestData);
 });
 
+// Port setup
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
