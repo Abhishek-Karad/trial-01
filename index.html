@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sensor Dashboard</title>
+</head>
+<body>
+    <h1>Sensor Readings</h1>
+    <ul id="data"></ul>
+    <script>
+        async function fetchData() {
+            const res = await fetch('http://<YOUR_PI_IP>:5000/api/data');
+            const data = await res.json();
+            const list = document.getElementById('data');
+            list.innerHTML = '';
+            data.forEach(d => {
+                const item = document.createElement('li');
+                item.textContent = `Temp: ${d.temperature}°C, Humidity: ${d.humidity}%`;
+                list.appendChild(item);
+            });
+        }
+        setInterval(fetchData, 5000);
+        fetchData();
+    </script>
+</body>
+</html>
